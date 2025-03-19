@@ -1,0 +1,6 @@
+@todo_back_agiles_HostAddress = http://localhost:5110
+
+GET {{todo_back_agiles_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
