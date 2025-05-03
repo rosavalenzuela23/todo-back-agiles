@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Task, TaskDocument, Status } from './schemas/task.schema';
-import { User } from '../auth/schemas/user.schema';
+import { User } from '../users/schemas/user.schema';
 
 @Injectable()
 export class TasksService {
