@@ -11,7 +11,7 @@ export class TasksService {
     constructor(
         @InjectModel(Task.name) private taskModel: Model<TaskDocument>,
         @InjectModel(User.name) private userModel: Model<User>,
-    ) {}
+    ) { }
 
     async create(createTaskDto: CreateTaskDto, userId: Types.ObjectId): Promise<Task> {
         const task = new this.taskModel({ ...createTaskDto, userCreator: userId });
@@ -28,6 +28,12 @@ export class TasksService {
 
     async findAllByUser(userId: Types.ObjectId): Promise<Task[]> {
         return this.taskModel.find({ userCreator: userId })
+            .sort({ endDate: 1 })
+            .exec();
+    }
+
+    async findAllByCategory(category: string): Promise<Task[]> {
+        return this.taskModel.find({ categoryName: category })
             .sort({ endDate: 1 })
             .exec();
     }

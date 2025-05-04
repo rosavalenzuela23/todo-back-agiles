@@ -1,8 +1,96 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, UseGuards, Req, } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  Patch,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
+import { Types } from 'mongoose';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-//import { JwtAuthGuard } from '../auth/guards/jwt_auth.guard';
+import { Task, Status } from './schemas/task.schema';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RequestWithTaskUser } from '../auth/interfaces/request-with-task.interface';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+} from '@nestjs/swagger';
 
+@ApiTags('Tasks')
+@ApiBearerAuth()
 @Controller('tasks')
-export class TasksController {}
+@UseGuards(JwtAuthGuard)
+export class TasksController {
+  constructor(private readonly tasksService: TasksService) { }
+
+  @Post()
+  @ApiOperation({ summary: 'Crear una nueva tarea' })
+  @ApiResponse({ status: 201, description: 'Tarea creada exitosamente' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos' })
+  async create(
+    @Body() createTaskDto: CreateTaskDto,
+    @Req() req: RequestWithTaskUser,
+  ): Promise<Task> {
+    return this.tasksService.create(createTaskDto, new Types.ObjectId(req.user._id));
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Obtener todas las tareas del usuario actual' })
+  @ApiResponse({ status: 200, description: 'Lista de tareas del usuario' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async findAllByUser(@Req() req: RequestWithTaskUser): Promise<Task[]> {
+    return this.tasksService.findAllByUser(new Types.ObjectId(req.user._id));
+  }
+
+  @Get('category/:category')
+  @ApiOperation({ summary: 'Obtener tareas por categoría' })
+  @ApiResponse({ status: 200, description: 'Tareas filtradas por categoría' })
+  async findAllByCategory(@Param('category') category: string): Promise<Task[]> {
+    return this.tasksService.findAllByCategory(category);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Actualizar una tarea' })
+  @ApiResponse({ status: 200, description: 'Tarea actualizada' })
+  @ApiResponse({ status: 404, description: 'Tarea no encontrada' })
+  async update(
+    @Param('id') taskId: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @Req() req: RequestWithTaskUser,
+  ): Promise<Task> {
+    return this.tasksService.update(taskId, updateTaskDto, new Types.ObjectId(req.user._id));
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar una tarea' })
+  @ApiResponse({ status: 200, description: 'Tarea eliminada' })
+  @ApiResponse({ status: 404, description: 'Tarea no encontrada' })
+  async remove(
+    @Param('id') taskId: string,
+    @Req() req: RequestWithTaskUser,
+  ): Promise<void> {
+    return this.tasksService.remove(taskId, new Types.ObjectId(req.user._id));
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Cambiar el estado de una tarea' })
+  @ApiResponse({ status: 200, description: 'Estado actualizado' })
+  @ApiResponse({ status: 404, description: 'Tarea no encontrada' })
+  async changeStatus(
+    @Param('id') taskId: string,
+    @Body('status') status: Status,
+    @Req() req: RequestWithTaskUser,
+  ): Promise<Task> {
+    return this.tasksService.changeStatus(taskId, status, new Types.ObjectId(req.user._id));
+  }
+}
+
+
