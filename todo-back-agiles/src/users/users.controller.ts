@@ -39,7 +39,15 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Información del usuario' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async getCurrentUser(@Req() req: RequestWithUser) {
-    return this.usersService.findById(req.user._id as string);
+    return this.usersService.findByEmail(req.user.email as string);
+  }
+
+  @Get('all')
+  @ApiOperation({ summary: 'Obtener todos los usuarios' })
+  @ApiResponse({ status: 200, description: 'Información del usuario' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async getAll(@Req() req: RequestWithUser) {
+    return this.usersService.findAll();
   }
 
   @Patch('me')
@@ -52,7 +60,7 @@ export class UsersController {
     @Req() req: RequestWithUser,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(req.user._id as string, updateUserDto);
+    return this.usersService.update(req.user.email as string, updateUserDto);
   }
 
   @Delete('me')
@@ -61,7 +69,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Usuario eliminado' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async deleteCurrentUser(@Req() req: RequestWithUser) {
-    return this.usersService.remove(req.user._id as string);
+    return this.usersService.remove(req.user.email as string);
   }
 
   // Endpoint adicional para obtener tareas del usuario
@@ -71,6 +79,6 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Lista de tareas' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async getUserTasks(@Req() req: RequestWithUser) {
-    return this.usersService.getUserWithTasks(req.user._id as string);
+    return this.usersService.getUserWithTasks(req.user.email as string);
   }
 }

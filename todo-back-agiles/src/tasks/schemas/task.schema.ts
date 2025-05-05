@@ -22,7 +22,7 @@ export class Task extends Document {
     @Prop()
     categoryName: string;
 
-    @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+    @Prop({ type: String, ref: 'User', required: true })
     userCreator: string;
 
     @Prop()

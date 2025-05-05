@@ -13,21 +13,21 @@ export class TasksService {
         @InjectModel(User.name) private userModel: Model<User>,
     ) { }
 
-    async create(createTaskDto: CreateTaskDto, userId: Types.ObjectId): Promise<Task> {
-        const task = new this.taskModel({ ...createTaskDto, userCreator: userId });
+    async create(createTaskDto: CreateTaskDto, email: string): Promise<Task> {
+        const task = new this.taskModel({ ...createTaskDto, userCreator: email });
 
         const savedTask = await task.save();
 
         // Agregar tarea al usuario
-        await this.userModel.findByIdAndUpdate(userId, {
+        await this.userModel.updateOne( { email }, {
             $push: { tasks: savedTask._id }
         });
 
         return savedTask;
     }
 
-    async findAllByUser(userId: Types.ObjectId): Promise<Task[]> {
-        return this.taskModel.find({ userCreator: userId })
+    async findAllByUser(email: string): Promise<Task[]> {
+        return this.taskModel.find({ userCreator: email })
             .sort({ endDate: 1 })
             .exec();
     }
@@ -41,10 +41,10 @@ export class TasksService {
     async update(
         taskId: string,
         updateTaskDto: UpdateTaskDto,
-        userId: Types.ObjectId,
+        email: string,
     ): Promise<Task> {
         const task = await this.taskModel.findOneAndUpdate(
-            { _id: taskId, userCreator: userId },
+            { _id: taskId, userCreator: email },
             updateTaskDto,
             { new: true }
         ).exec();
@@ -56,17 +56,17 @@ export class TasksService {
         return task;
     }
 
-    async remove(taskId: string, userId: Types.ObjectId): Promise<void> {
+    async remove(taskId: string, email: string): Promise<void> {
         const result = await this.taskModel.deleteOne({
             _id: taskId,
-            userCreator: userId
+            userCreator: email
         }).exec();
 
         if (result.deletedCount === 0) {
             throw new NotFoundException(`Tarea con el id ${taskId} no encontrada`);
         }
 
-        await this.userModel.findByIdAndDelete(userId, {
+        await this.userModel.updateOne({ email }, {
             $pull: { tasks: taskId }
         });
     }
@@ -74,8 +74,8 @@ export class TasksService {
     async changeStatus(
         taskId: string,
         status: Status,
-        userId: Types.ObjectId,
+        email: string,
     ): Promise<Task> {
-        return this.update(taskId, { status }, userId);
+        return this.update(taskId, { status }, email);
     }
 }

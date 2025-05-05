@@ -24,10 +24,7 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 
-@ApiTags('Tasks')
-@ApiBearerAuth()
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
 export class TasksController {
   constructor(private readonly tasksService: TasksService) { }
 
@@ -39,7 +36,7 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @Req() req: RequestWithTaskUser,
   ): Promise<Task> {
-    return this.tasksService.create(createTaskDto, new Types.ObjectId(req.user._id));
+    return this.tasksService.create(createTaskDto, req.user.email as string);
   }
 
   @Get()
@@ -47,7 +44,7 @@ export class TasksController {
   @ApiResponse({ status: 200, description: 'Lista de tareas del usuario' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async findAllByUser(@Req() req: RequestWithTaskUser): Promise<Task[]> {
-    return this.tasksService.findAllByUser(new Types.ObjectId(req.user._id));
+    return this.tasksService.findAllByUser(req.user.email as string);
   }
 
   @Get('category/:category')
@@ -66,7 +63,7 @@ export class TasksController {
     @Body() updateTaskDto: UpdateTaskDto,
     @Req() req: RequestWithTaskUser,
   ): Promise<Task> {
-    return this.tasksService.update(taskId, updateTaskDto, new Types.ObjectId(req.user._id));
+    return this.tasksService.update(taskId, updateTaskDto, req.user.email as string);
   }
 
   @Delete(':id')
@@ -77,7 +74,7 @@ export class TasksController {
     @Param('id') taskId: string,
     @Req() req: RequestWithTaskUser,
   ): Promise<void> {
-    return this.tasksService.remove(taskId, new Types.ObjectId(req.user._id));
+    return this.tasksService.remove(taskId, req.user.email as string);
   }
 
   @Patch(':id/status')
@@ -89,7 +86,7 @@ export class TasksController {
     @Body('status') status: Status,
     @Req() req: RequestWithTaskUser,
   ): Promise<Task> {
-    return this.tasksService.changeStatus(taskId, status, new Types.ObjectId(req.user._id));
+    return this.tasksService.changeStatus(taskId, status, req.user.email as string);
   }
 }
 

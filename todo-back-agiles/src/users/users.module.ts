@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -10,7 +10,7 @@ import { TasksModule } from '../tasks/tasks.module';
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     AuthModule,
-    TasksModule
+    forwardRef(() => TasksModule) 
   ],
   providers: [UsersService],
   controllers: [UsersController],
