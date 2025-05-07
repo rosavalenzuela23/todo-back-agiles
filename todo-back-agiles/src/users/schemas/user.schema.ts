@@ -7,7 +7,7 @@ export class User extends Document {
     @Prop({ required: true, unique: true, lowercase: true, trim: true })
     email: string;
 
-    @Prop({ required: true, select: false }) // select: false para no devolverlo en queries
+    @Prop({ required: true })
     password: string;
 
     @Prop()

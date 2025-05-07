@@ -22,11 +22,7 @@ export class AuthController {
     @ApiResponse({ status: 200, description: 'Inicio de sesion exitoso' })
     @ApiResponse({ status: 401, description: 'Credenciales invalidas' })
     async login(@Body() loginDto: LoginDto, @Request() req) {
-        const user = await this.authService.validateUser(loginDto.email, loginDto.password);
-        if (!user) {
-            throw new UnauthorizedException('Credenciales invalidas');
-        }
 
-        return this.authService.login(user);
+        return this.authService.login(loginDto);
     }
 }
