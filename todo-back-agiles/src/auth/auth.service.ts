@@ -21,9 +21,8 @@ export class AuthService {
        */
       async validateUser(email: string, pass: string): Promise<any> {
         const user = await this.usersService.findByEmail(email);
-        if (user && await bcrypt.compare(pass, user.password)) {
-          const { password, ...result } = user.toObject();
-          return result;
+        if (user &&  bcrypt.compare(pass, user.password)) {
+          return user;
         }
 
         return null;
@@ -36,6 +35,7 @@ export class AuthService {
        */
       async login(loginDto: LoginDto) {
         const user = await this.validateUser(loginDto.email, loginDto.password);
+        console.log(user);
         if (!user) {
           throw new UnauthorizedException('Credenciales invalidas');
         }
