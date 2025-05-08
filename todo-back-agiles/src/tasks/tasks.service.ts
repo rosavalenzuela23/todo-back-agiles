@@ -32,11 +32,14 @@ export class TasksService {
             .exec();
     }
 
-    async findAllByCategory(category: string): Promise<Task[]> {
-        return this.taskModel.find({ categoryName: category })
-            .sort({ endDate: 1 })
-            .exec();
-    }
+    async findAllByCategory(category: string, email: string): Promise<Task[]> {
+        return this.taskModel.find({
+          categoryName: category,
+          userCreator: email
+        })
+        .sort({ endDate: 1 })
+        .exec();
+      }
 
     async update(
         taskId: string,

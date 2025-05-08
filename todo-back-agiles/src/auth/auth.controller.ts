@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Request, UnauthorizedException } from '@nestjs/common';
+import { Controller, Post, Body, Request, UnauthorizedException, HttpCode  } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -18,6 +18,7 @@ export class AuthController {
     }
 
     @Post('login')
+    @HttpCode(200)
     @ApiOperation({ summary: 'Iniciar sesion' })
     @ApiResponse({ status: 200, description: 'Inicio de sesion exitoso' })
     @ApiResponse({ status: 401, description: 'Credenciales invalidas' })

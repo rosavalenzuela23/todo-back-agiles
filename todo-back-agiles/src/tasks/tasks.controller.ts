@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Delete,
+  BadRequestException,
   Put,
   Patch,
   UseGuards,
@@ -24,7 +25,10 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 
+@ApiTags('tasks')
 @Controller('tasks')
+@UseGuards(JwtAuthGuard) // Aplicar el guard a nivel de controlador
+@ApiBearerAuth() // Aplicar la documentación de autenticación a nivel de controlador
 export class TasksController {
   constructor(private readonly tasksService: TasksService) { }
 
@@ -39,19 +43,23 @@ export class TasksController {
     return this.tasksService.create(createTaskDto, req.user.email as string);
   }
 
+  @Get('category/:category')
+  @ApiOperation({ summary: 'Obtener tareas por categoría del usuario actual' })
+  @ApiResponse({ status: 200, description: 'Tareas filtradas por categoría' })
+  @ApiResponse({ status: 401, description: 'No autorizado' })
+  async findAllUserByCategory(
+    @Param('category') category: string,
+    @Req() req: RequestWithTaskUser
+  ): Promise<Task[]> {
+    return this.tasksService.findAllByCategory(category, req.user.email as string);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Obtener todas las tareas del usuario actual' })
   @ApiResponse({ status: 200, description: 'Lista de tareas del usuario' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async findAllByUser(@Req() req: RequestWithTaskUser): Promise<Task[]> {
     return this.tasksService.findAllByUser(req.user.email as string);
-  }
-
-  @Get('category/:category')
-  @ApiOperation({ summary: 'Obtener tareas por categoría' })
-  @ApiResponse({ status: 200, description: 'Tareas filtradas por categoría' })
-  async findAllByCategory(@Param('category') category: string): Promise<Task[]> {
-    return this.tasksService.findAllByCategory(category);
   }
 
   @Put(':id')
@@ -78,16 +86,14 @@ export class TasksController {
   }
 
   @Patch(':id/status')
-  @ApiOperation({ summary: 'Cambiar el estado de una tarea' })
-  @ApiResponse({ status: 200, description: 'Estado actualizado' })
-  @ApiResponse({ status: 404, description: 'Tarea no encontrada' })
-  async changeStatus(
-    @Param('id') taskId: string,
-    @Body('status') status: Status,
-    @Req() req: RequestWithTaskUser,
-  ): Promise<Task> {
-    return this.tasksService.changeStatus(taskId, status, req.user.email as string);
+async changeStatus(
+  @Param('id') taskId: string,
+  @Body('status') status: string, // Cambiar a string para validar
+  @Req() req: RequestWithTaskUser,
+): Promise<Task> {
+  if (!Object.values(Status).includes(status as Status)) {
+    throw new BadRequestException('Estado no válido');
   }
+  return this.tasksService.changeStatus(taskId, status as Status, req.user.email as string);
 }
-
-
+}
