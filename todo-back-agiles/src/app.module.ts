@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { UsersModule } from './users/users.module';
 import { TasksModule } from './tasks/tasks.module';
 import { AuthModule } from './auth/auth.module';
+import { StaticModuleModule } from './static-module/static-module.module';
 
 
 @Module({
@@ -14,7 +15,8 @@ import { AuthModule } from './auth/auth.module';
     MongooseModule.forRoot('mongodb://localhost:27017/todo-app'),
     AuthModule,
     UsersModule,
-    TasksModule
+    TasksModule,
+    StaticModuleModule
   ],
 })
 export class AppModule {}

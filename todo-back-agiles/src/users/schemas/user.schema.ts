@@ -1,6 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { Task } from '../../tasks/schemas/task.schema';
+
+export type TaskDTO = {
+    title: string,
+    description: string,
+    status: string,
+    categoryName: string,
+    endDate: Date,
+}
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -13,9 +20,8 @@ export class User extends Document {
     @Prop()
     username: string;
 
-    @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }], default: [] })
-    tasks: Types.ObjectId[];
-
+    @Prop()
+    tasks: TaskDTO[];
 }
 
 export type UserDocument = User & Document;

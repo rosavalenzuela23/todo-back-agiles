@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
-import * as bcrypt from 'bcrypt';
+import { genSaltSync, hashSync, compareSync } from "bcryptjs";
 
 @Injectable()
 export class UsersService {
@@ -23,14 +23,13 @@ export class UsersService {
             throw new ConflictException('El email ya esta registrado');
         }
 
-        const hashedPassword = await this.hashPassword(password);
         const user = new this.userModel({
             email,
-            password: hashedPassword,
+            password: password,
             username,
         });
 
-        return user.save();
+        return await user.save();
     }
 
     /**
@@ -38,7 +37,7 @@ export class UsersService {
      * @returns Lista de usuarios ocultando la contraseña.
      */
     async findAll(): Promise<User[]> {
-        return this.userModel.find().select('-password').populate('tasks', 'titulo descripcion estado -_id').exec();
+        return await this.userModel.find().select('-password').exec();
     }
 
     /**
@@ -47,7 +46,7 @@ export class UsersService {
      * @returns Usario encontrado por su nombre o 'null' si no existe.
      */
     async findByName(username: string): Promise<User | null> {
-        return this.userModel.findOne({ username }).exec();
+        return await this.userModel.findOne({ username }).exec();
     }
 
     /**
@@ -56,7 +55,7 @@ export class UsersService {
      * @returns Usuario encontrado por su email o 'undefined' si no existe.
      */
     async findByEmail(email: string): Promise<User | null> {
-        return this.userModel.findOne({ email }).exec();
+        return await this.userModel.findOne({ email }).exec();
     }
 
     /**
@@ -70,13 +69,14 @@ export class UsersService {
 
         //Hash de la contraseña si se actualiza.
         if (updateUserDto.password) {
-            updateUserDto.password = await this.hashPassword(updateUserDto.password);
+            updateUserDto.password = updateUserDto.password
         }
 
-        const updatedUser = await this.userModel.findOneAndUpdate({ email }, updateUserDto, { new: true })
-            .select('-password')
-            .exec();
-
+        const updatedUser = await this.userModel.findOneAndUpdate(
+            { email: email }, updateData, { new: true }
+        );
+        
+        console.log(updatedUser?.toJSON());
         if (!updatedUser) throw new NotFoundException(`Usuario con el id ${email} no encontrado`);
         return updatedUser;
     }
@@ -92,19 +92,7 @@ export class UsersService {
 
     async getUserWithTasks(email: string): Promise<User | null> {
         return this.userModel.findOne({ email })
-            .select('-password')
-            .populate('tasks', 'titulo descripcion estado fechaTermino')
             .exec();
-    }
-
-    /**
-     * Metodo para hashear la contraseña del usuario.
-     * @param password Contraseña a hashear.
-     * @returns Contraseña hasheada.
-     */
-    private async hashPassword(password: string): Promise<string> {
-        const salt = await bcrypt.genSalt();
-        return bcrypt.hash(password, salt);
     }
 
     /**
@@ -114,6 +102,6 @@ export class UsersService {
      * @returns Validacion de la contraseña del usuario.
      */
     async validatePassword(user: UserDocument, password: string): Promise<boolean> {
-        return bcrypt.compare(password, user.password);
+        return compareSync(password, user.password);
     }
 }

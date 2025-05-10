@@ -10,6 +10,7 @@ import {
   Patch,
   UseGuards,
   Req,
+  Headers,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { TasksService } from './tasks.service';
@@ -24,6 +25,7 @@ import {
   ApiOperation,
   ApiResponse,
 } from '@nestjs/swagger';
+import { TaskDTO } from 'src/users/schemas/user.schema';
 
 @ApiTags('tasks')
 @Controller('tasks')
@@ -31,6 +33,15 @@ import {
 @ApiBearerAuth() // Aplicar la documentación de autenticación a nivel de controlador
 export class TasksController {
   constructor(private readonly tasksService: TasksService) { }
+
+  @Post('bulk')
+  async createBulk(@Body() tasks: CreateTaskDto[], @Headers("UserEmail") userEmail: string) {
+    if (!userEmail) {
+      throw new BadRequestException('userId es requerido');
+    }
+
+    this.tasksService.changeBulk(userEmail, tasks);
+  }
 
   @Post()
   @ApiOperation({ summary: 'Crear una nueva tarea' })
@@ -58,7 +69,7 @@ export class TasksController {
   @ApiOperation({ summary: 'Obtener todas las tareas del usuario actual' })
   @ApiResponse({ status: 200, description: 'Lista de tareas del usuario' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  async findAllByUser(@Req() req: RequestWithTaskUser): Promise<Task[]> {
+  async findAllByUser(@Req() req: RequestWithTaskUser): Promise<TaskDTO[]> {
     return this.tasksService.findAllByUser(req.user.email as string);
   }
 
